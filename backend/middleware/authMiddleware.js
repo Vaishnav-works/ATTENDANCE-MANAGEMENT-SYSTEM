@@ -8,14 +8,24 @@ export const protect = async (req, res, next) => {
     try {
       token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = await User.findById(decoded.id).select('-password');
+      const userFound = await User.findById(decoded.id).select('-password');
+      
+      if (!userFound) {
+        console.warn("AUTH FAILED: User account no longer exists");
+        return res.status(401).json({ message: 'Session expired or user deleted. Please log in again.' });
+      }
+
+      req.user = userFound;
+      console.log(`AUTH SUCCESS: User ${req.user.name} (${req.user.role}) accessed ${req.originalUrl}`);
       next();
     } catch (error) {
+      console.error("AUTH FAILED: Token invalid", error.message);
       res.status(401).json({ message: 'Not authorized, token failed' });
     }
   }
 
   if (!token) {
+    console.warn("AUTH FAILED: No token provided");
     res.status(401).json({ message: 'Not authorized, no token' });
   }
 };

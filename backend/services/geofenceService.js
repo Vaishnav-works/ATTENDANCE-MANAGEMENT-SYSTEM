@@ -18,7 +18,7 @@ export const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return distance;
 };
 
-export const validateGeofence = (studentLat, studentLon, classLat, classLon, radius = 50) => {
+export const validateGeofence = (studentLat, studentLon, classLat, classLon, radius = 40) => {
   const distance = calculateDistance(studentLat, studentLon, classLat, classLon);
   return {
     isValid: distance <= radius,

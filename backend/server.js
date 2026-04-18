@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import helmet from 'helmet';
 import connectDB from './config/db.js';
 
 // Setup env and db
@@ -9,20 +10,108 @@ connectDB();
 
 const app = express();
 
-// Middleware
+// Security Middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      "img-src": ["'self'", "https:", "data:", "blob:"],
+      "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      "connect-src": ["'self'", "https:", "http:", "ws:", "wss:"],
+      "style-src": ["'self'", "https:", "'unsafe-inline'"],
+      "font-src": ["'self'", "https:", "data:"]
+    }
+  }
+}));
 app.use(express.json());
-app.use(cors());
+
+// CORS Configuration
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:5173',
+  'https://localhost:5173', // Added HTTPS for local development
+  'http://localhost:5174',
+  'https://localhost:5174'
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow all origins in development mode for easier tunnel testing
+    if (process.env.NODE_ENV === 'development') return callback(null, true);
+    
+    // In production, strictly check allowedOrigins
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.error(`Blocked by CORS: origin ${origin} is not in allowedOrigins: ${allowedOrigins}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
+
+// Global Request Logger
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
+});
 
 import routes from './routes/index.js';
 
-// Routes
+// Health Check for Proxy Verification
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'AuraAI Backend Operational', 
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV
+  });
+});
+
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ── UNIFIED ROUTING (RESTORED) ──────────────────────────
+const distPath = path.join(__dirname, '../frontend/dist');
+
+// 1. API Routes (Check first)
 app.use('/api', routes);
 
-app.get('/', (req, res) => {
-  res.send('API is running...');
+// 2. Static Assets (Check second)
+app.use(express.static(distPath));
+
+// 3. SPA Catch-all (Check last)
+// Use a generic middleware to handle SPA navigation instead of path-strings
+app.use((req, res, next) => {
+  // If we reach this point and it's not an API route, serve the frontend
+  if (!req.url.startsWith('/api')) {
+    res.sendFile(path.join(distPath, 'index.html'));
+  } else {
+    // API 404
+    res.status(404).json({ message: 'API Route Not Found', success: false });
+  }
+});
+
+// Global Error Handling Middleware
+app.use((err, req, res, next) => {
+  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  res.status(statusCode).json({
+    success: false,
+    message: err.message,
+    stack: process.env.NODE_ENV === 'production' ? null : err.stack,
+  });
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+const server = app.listen(PORT, () => {
+  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err, promise) => {
+  console.log(`Error: ${err.message}`);
+  // Close server & exit process
+  server.close(() => process.exit(1));
 });

@@ -4,7 +4,7 @@ import User from '../models/User.js';
 
 export const register = async (req, res) => {
   try {
-    const { user_id, name, email, password, role, student_id, faculty_id, device_id } = req.body;
+    const { user_id, name, email, password, role, student_id, faculty_id, device_id, branch, year } = req.body;
     
     // Check if user exists
     const userExists = await User.findOne({ email });
@@ -16,7 +16,16 @@ export const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const user = await User.create({
-      user_id, name, email, password: hashedPassword, role, student_id, faculty_id, device_id
+      user_id, 
+      name, 
+      email, 
+      password: hashedPassword, 
+      role, 
+      student_id, 
+      faculty_id, 
+      device_id: device_id || `device-${Date.now()}`, // Fallback for testing
+      branch, 
+      year
     });
 
     if (user) {

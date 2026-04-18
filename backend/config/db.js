@@ -18,8 +18,12 @@ const connectDB = async () => {
     const conn = await mongoose.connect(uri);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     
-    // Automatically seed data into the temporary server
-    if (mongoServer) {
+    // Check if we need to seed because the DB is empty (First time use)
+    const User = (await import('../models/User.js')).default;
+    const userCount = await User.countDocuments();
+    
+    if (userCount === 0 || mongoServer) {
+       console.log("Database looks empty or temporary. Running Seed Initializer...");
        await seedDB();
     }
   } catch (error) {

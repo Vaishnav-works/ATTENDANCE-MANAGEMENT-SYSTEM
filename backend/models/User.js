@@ -6,9 +6,16 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['Student', 'Faculty', 'Admin'], required: true },
-  student_id: { type: String }, // Optional depending on role
-  faculty_id: { type: String }, // Optional depending on role
-  device_id: { type: String, required: true }, // Used for anti-proxy validation
+  student_id: { type: String }, 
+  faculty_id: { type: String },
+  device_id: { type: String, required: true },
+  
+  // Profile Fields
+  photo_url: { type: String },
+  branch: { type: String },
+  year: { type: Number },
+  designation: { type: String },
+  
   created_at: { type: Date, default: Date.now },
 });
 
