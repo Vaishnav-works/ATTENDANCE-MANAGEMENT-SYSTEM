@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Root controller for unified SCANOVA deployment",
   "scripts": {
-    "build": "npm install --prefix backend && npm install --prefix frontend --include=dev && npm run build --prefix frontend",
+    "build": "npm install --prefix backend",
     "start": "node backend/server.js"
   },
   "engines": {
