@@ -73,24 +73,22 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ── UNIFIED ROUTING (RESTORED) ──────────────────────────
+// ── UNIFIED ROUTING (CRITICAL FIX) ──────────────────────
 const distPath = path.join(__dirname, '../frontend/dist');
 
-// 1. API Routes (Check first)
+// 1. Static Assets (Must be FIRST)
+app.use(express.static(distPath, { index: false }));
+
+// 2. API Routes
 app.use('/api', routes);
 
-// 2. Static Assets (Check second)
-app.use(express.static(distPath));
-
-// 3. SPA Catch-all (Check last)
-// Use a generic middleware to handle SPA navigation instead of path-strings
-app.use((req, res, next) => {
-  // If we reach this point and it's not an API route, serve the frontend
+// 3. SPA Fallback
+app.get('*', (req, res) => {
+  // Only serve index.html for non-API, GET requests
   if (!req.url.startsWith('/api')) {
     res.sendFile(path.join(distPath, 'index.html'));
   } else {
-    // API 404
-    res.status(404).json({ message: 'API Route Not Found', success: false });
+    res.status(404).json({ message: 'API Route Not Found' });
   }
 });
 
