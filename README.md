@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AuraAI Smart Attendance Management System
 
 A premium, role-based attendance management system featuring QR Code scanning, Geofencing (40m radius validation), and AI-powered insights.
@@ -83,3 +84,7 @@ Use these accounts to explore the different roles:
 
 ---
 *Created with AuraAI - Advanced Attendance Intelligence*
+=======
+# ATTENDANCE-MANAGEMENT-SYSTEM
+Scanova is an intelligent attendance management system that leverages QR code scanning and geofencing technology to ensure secure, accurate, and real-time attendance tracking. The system allows users to mark attendance only when they are physically present within a predefined location, reducing proxy attendance and improving reliability.
+>>>>>>> ba17b9466f3d25a20af6cf8717ba680ca158b5d3
