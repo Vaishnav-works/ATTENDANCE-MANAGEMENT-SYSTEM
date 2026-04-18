@@ -8,12 +8,11 @@ const connectDB = async () => {
   try {
     let uri = process.env.MONGO_URI;
 
-    if (uri.includes('127.0.0.1')) {
-      console.log('No external DB found: Starting temporary in-memory MongoDB Server...');
-      console.log('NOTE: Downloading the MongoDB memory engine on first run could take 30-60 seconds.');
-      mongoServer = await MongoMemoryServer.create();
-      uri = mongoServer.getUri();
+    if (!uri) {
+      throw new Error('MONGO_URI is not defined in environment variables');
     }
+
+    if (uri.indexOf('127.0.0.1') !== -1 || uri.indexOf('localhost') !== -1) {
 
     const conn = await mongoose.connect(uri);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
