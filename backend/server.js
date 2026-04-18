@@ -73,11 +73,11 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ── UNIFIED ROUTING (CRITICAL FIX) ──────────────────────
-const distPath = path.join(__dirname, '../frontend/dist');
+// ── UNIFIED ROUTING (GUARANTEED FIX) ────────────────────
+const publicPath = path.join(__dirname, 'public');
 
 // 1. Static Assets (Must be FIRST)
-app.use(express.static(distPath, { index: false }));
+app.use(express.static(publicPath, { index: false }));
 
 // 2. API Routes
 app.use('/api', routes);
@@ -86,7 +86,7 @@ app.use('/api', routes);
 app.get('*', (req, res) => {
   // Only serve index.html for non-API, GET requests
   if (!req.url.startsWith('/api')) {
-    res.sendFile(path.join(distPath, 'index.html'));
+    res.sendFile(path.join(publicPath, 'index.html'));
   } else {
     res.status(404).json({ message: 'API Route Not Found' });
   }
